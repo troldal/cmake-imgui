@@ -8,7 +8,7 @@ CMake cross platform module for building [Dear ImGui](https://github.com/ocornut
 
 Clone the project:
 ```bash
-git clone --recursive https://github.com/giladreich/cmake-imgui
+git clone --recursive --shallow-submodules https://github.com/giladreich/cmake-imgui
 cd cmake-imgui
 ```
 

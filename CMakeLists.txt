@@ -10,7 +10,7 @@ include(CMakeOptions.cmake)
 # PROJECT
 ##################################################################################################################
 
-set(imgui_VERSION 1.88.0)
+set(imgui_VERSION 1.90.7)
 
 project(imgui
   VERSION ${imgui_VERSION}
@@ -18,6 +18,8 @@ project(imgui
   DESCRIPTION "Build ImGui as shared or static library."
   HOMEPAGE_URL "https://github.com/ocornut/imgui"
 )
+
+include(GNUInstallDirs)
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "" FORCE)
 
@@ -186,13 +188,15 @@ install(FILES ${FONTS_FILES}
 if(MSVC)
   if(IMGUI_STATIC_LIBRARY)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/$<TARGET_FILE_BASE_NAME:${PROJECT_NAME}>.pdb
-      DESTINATION lib
-      CONFIGURATIONS Debug OR RelWithDebInfo
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT lib
+      OPTIONAL
     )
   else()
     install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}>
-      DESTINATION bin
-      CONFIGURATIONS Debug OR RelWithDebInfo
+      DESTINATION ${CMAKE_INSTALL_BINDIR}
+      COMPONENT bin
+      OPTIONAL
     )
   endif()
 endif()
