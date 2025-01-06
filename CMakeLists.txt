@@ -17,13 +17,26 @@ set(IMGUI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
 set(IMGUI_BACKENDS_DIR ${IMGUI_SOURCE_DIR}/backends)
 
 ##################################################################################################################
-# BUILD OPTIONS
+# TARGET OPTIONS
 ##################################################################################################################
 
 option(IMGUI_STATIC_LIBRARY
         "Set to OFF to build as shared library."
         ON
 )
+
+##################################################################################################################
+# TARGET
+##################################################################################################################
+
+if (IMGUI_STATIC_LIBRARY)
+    message(STATUS "[ImGui] Building STATIC library")
+    add_library(${PROJECT_NAME} STATIC "")
+else ()
+    message(STATUS "[ImGui] Building SHARED library")
+    add_library(${PROJECT_NAME} SHARED "")
+endif ()
+add_library(ImGui::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 ##################################################################################################################
 # BACKEND OPTIONS
@@ -146,8 +159,6 @@ set(IMGUI_PUBLIC_CXX_FILES
         ${IMGUI_SOURCE_DIR}/imgui_tables.cpp
 )
 
-file(GLOB IMGUI_FONTS_FILES ${IMGUI_SOURCE_DIR}/misc/fonts/*.ttf)
-
 set(IMGUI_INTERFACE_LIBS "")
 
 if (IMGUI_BACKEND_ALLEGRO5)
@@ -196,6 +207,8 @@ if (IMGUI_BACKEND_GLFW)
     message(STATUS "[ImGui] Including backend platform: [GLFW]")
     list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_glfw.h)
     list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_glfw.cpp)
+    find_package(glfw3 CONFIG REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
     #list(APPEND IMGUI_INTERFACE_LIBS glfw)
 endif ()
 
@@ -215,6 +228,8 @@ if (IMGUI_BACKEND_OPENGL2)
     message(STATUS "[ImGui] Including backend api: [OpenGL2]")
     list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl2.h)
     list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl2.cpp)
+    find_package(OpenGL REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC OpenGL::GL)
     #list(APPEND IMGUI_INTERFACE_LIBS OpenGL::GL)
 endif ()
 
@@ -222,6 +237,8 @@ if (IMGUI_BACKEND_OPENGL3)
     message(STATUS "[ImGui] Including backend api: [OpenGL3]")
     list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl3.h)
     list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl3.cpp)
+    find_package(OpenGL REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC OpenGL::GL)
     #list(APPEND IMGUI_INTERFACE_LIBS OpenGL::GL)
 endif ()
 
@@ -233,15 +250,28 @@ endif ()
 
 if (IMGUI_BACKEND_SDL2)
     message(STATUS "[ImGui] Including backend platform: [SDL2]")
-    list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdl.h)
-    list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdl.cpp)
-    #list(APPEND IMGUI_INTERFACE_LIBS SDL2::SDL2)
+    list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdl2.h)
+    list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdl2.cpp)
+    find_package(SDL2 CONFIG REQUIRED)
+    list(APPEND IMGUI_INTERFACE_LIBS SDL2::SDL2)
+    target_link_libraries(${PROJECT_NAME}
+            PUBLIC
+            SDL2::SDL2main
+            $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+    )
 endif ()
 
 if (IMGUI_BACKEND_SDLRENDERER2)
     message(STATUS "[ImGui] Including backend platform: [SDL2 Renderer]")
-    list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdlrenderer.h)
-    list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdlrenderer.cpp)
+    list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdlrenderer2.h)
+    list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdlrenderer2.cpp)
+    find_package(SDL2 CONFIG REQUIRED)
+    list(APPEND IMGUI_INTERFACE_LIBS SDL2::SDL2)
+    target_link_libraries(${PROJECT_NAME}
+            PUBLIC
+            SDL2::SDL2main
+            $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+    )
 endif ()
 
 if (IMGUI_BACKEND_SDL3)
@@ -276,23 +306,28 @@ endif ()
 
 
 set(IMGUI_PROJECT_FILES
-        ${IMGUI_PUBLIC_H_FILES}
+#        ${IMGUI_PUBLIC_H_FILES}
         ${IMGUI_PUBLIC_CXX_FILES}
-        ${IMGUI_FONTS_FILES}
+#        ${IMGUI_FONTS_FILES}
 )
 
 ##################################################################################################################
 # TARGET
 ##################################################################################################################
 
-if (IMGUI_STATIC_LIBRARY)
-    message(STATUS "[ImGui] Building STATIC library")
-    add_library(${PROJECT_NAME} STATIC ${IMGUI_PROJECT_FILES})
-else ()
-    message(STATUS "[ImGui] Building SHARED library")
-    add_library(${PROJECT_NAME} SHARED ${IMGUI_PROJECT_FILES})
-endif ()
-add_library(ImGui::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+#if (IMGUI_STATIC_LIBRARY)
+#    message(STATUS "[ImGui] Building STATIC library")
+#    add_library(${PROJECT_NAME} STATIC ${IMGUI_PROJECT_FILES})
+#else ()
+#    message(STATUS "[ImGui] Building SHARED library")
+#    add_library(${PROJECT_NAME} SHARED ${IMGUI_PROJECT_FILES})
+#endif ()
+#add_library(ImGui::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+target_sources(${PROJECT_NAME}
+        PRIVATE
+        ${IMGUI_PROJECT_FILES}
+)
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC
@@ -306,6 +341,8 @@ if (IMGUI_BACKEND_DX12)
     target_link_libraries(${PROJECT_NAME} PRIVATE d3d12 dxgi)
     target_compile_definitions(${PROJECT_NAME} PRIVATE ImTextureID=ImU64)
 endif ()
+
+
 
 target_compile_options(${PROJECT_NAME}
         PUBLIC
