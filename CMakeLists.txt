@@ -13,7 +13,17 @@ project(ImGui
         HOMEPAGE_URL "https://github.com/ocornut/imgui"
 )
 
-set(IMGUI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
+include(FetchContent)
+FetchContent_Declare(
+        fetchimgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v${imgui_VERSION}
+)
+FetchContent_MakeAvailable(fetchimgui)
+
+message(STATUS "[ImGui] Version: ${fetchimgui_SOURCE_DIR}")
+
+set(IMGUI_SOURCE_DIR ${fetchimgui_SOURCE_DIR})
 set(IMGUI_BACKENDS_DIR ${IMGUI_SOURCE_DIR}/backends)
 
 ##################################################################################################################
