@@ -384,7 +384,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 if (EMSCRIPTEN)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${fetchimgui_SOURCE_DIR}/examples/libs/emscripten)
+    target_include_directories(${PROJECT_NAME} PUBLIC ${fetchimgui_SOURCE_DIR}/examples/libs/emscripten)
 endif()
 
 target_link_libraries(${PROJECT_NAME} INTERFACE ${IMGUI_INTERFACE_LIBS})
