@@ -171,6 +171,8 @@ set(IMGUI_PUBLIC_CXX_FILES
 
 set(IMGUI_INTERFACE_LIBS "")
 
+
+
 if (IMGUI_BACKEND_ALLEGRO5)
     message(STATUS "[ImGui] Including backend platform: [Allegro5]")
     list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_allegro5.h)
@@ -213,13 +215,22 @@ if (IMGUI_BACKEND_DX12)
     # list(APPEND IMGUI_INTERFACE_LIBS d3dcompiler)
 endif ()
 
+
+
 if (IMGUI_BACKEND_GLFW)
     message(STATUS "[ImGui] Including backend platform: [GLFW]")
     list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_glfw.h)
     list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_glfw.cpp)
-    find_package(glfw3 CONFIG REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
-    #list(APPEND IMGUI_INTERFACE_LIBS glfw)
+    if (EMSCRIPTEN)
+        target_link_options(${PROJECT_NAME} PUBLIC -sUSE_GLFW=3 -sWASM=1 -sALLOW_MEMORY_GROWTH=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1)
+        target_link_options(${PROJECT_NAME} PUBLIC --shell-file ${CMAKE_CURRENT_LIST_DIR}/libs/emscripten/shell_minimal.html)
+        target_link_options(${PROJECT_NAME} PUBLIC --preload-file ${CMAKE_CURRENT_BINARY_DIR}/fonts/Inter.ttf)
+    else()
+        find_package(glfw3 CONFIG REQUIRED)
+        target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
+        #list(APPEND IMGUI_INTERFACE_LIBS glfw)
+    endif ()
+
 endif ()
 
 if (IMGUI_BACKEND_GLUT)
@@ -238,18 +249,32 @@ if (IMGUI_BACKEND_OPENGL2)
     message(STATUS "[ImGui] Including backend api: [OpenGL2]")
     list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl2.h)
     list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl2.cpp)
-    find_package(OpenGL REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PUBLIC OpenGL::GL)
-    #list(APPEND IMGUI_INTERFACE_LIBS OpenGL::GL)
+    if (EMSCRIPTEN)
+        #target_link_options(${PROJECT_NAME} PUBLIC -sUSE_GLFW=3 -sWASM=1 -sALLOW_MEMORY_GROWTH=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1)
+        #target_link_options(${PROJECT_NAME} PUBLIC --shell-file ${CMAKE_CURRENT_LIST_DIR}/libs/emscripten/shell_minimal.html)
+        #target_link_libraries(${PROJECT_NAME} PUBLIC  glfw)
+    else()
+        find_package(OpenGL REQUIRED)
+        target_link_libraries(${PROJECT_NAME} PUBLIC OpenGL::GL)
+        #list(APPEND IMGUI_INTERFACE_LIBS OpenGL::GL)
+    endif ()
+
 endif ()
 
 if (IMGUI_BACKEND_OPENGL3)
     message(STATUS "[ImGui] Including backend api: [OpenGL3]")
     list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl3.h)
     list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl3.cpp)
-    find_package(OpenGL REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PUBLIC OpenGL::GL)
-    #list(APPEND IMGUI_INTERFACE_LIBS OpenGL::GL)
+    if (EMSCRIPTEN)
+        #target_link_options(${PROJECT_NAME} PUBLIC -sUSE_GLFW=3 -sWASM=1 -sALLOW_MEMORY_GROWTH=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1)
+        #target_link_options(${PROJECT_NAME} PUBLIC --shell-file ${CMAKE_CURRENT_LIST_DIR}/libs/emscripten/shell_minimal.html)
+        #target_link_libraries(${PROJECT_NAME} PUBLIC  glfw)
+    else()
+        find_package(OpenGL REQUIRED)
+        target_link_libraries(${PROJECT_NAME} PUBLIC OpenGL::GL)
+        #list(APPEND IMGUI_INTERFACE_LIBS OpenGL::GL)
+    endif ()
+
 endif ()
 
 if (IMGUI_BACKEND_OSX)
@@ -262,26 +287,38 @@ if (IMGUI_BACKEND_SDL2)
     message(STATUS "[ImGui] Including backend platform: [SDL2]")
     list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdl2.h)
     list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdl2.cpp)
-    find_package(SDL2 CONFIG REQUIRED)
-    list(APPEND IMGUI_INTERFACE_LIBS SDL2::SDL2)
-    target_link_libraries(${PROJECT_NAME}
-            PUBLIC
-            SDL2::SDL2main
-            $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
-    )
+    if (EMSCRIPTEN)
+        target_link_options(${PROJECT_NAME} PUBLIC -sUSE_SDL=2 -sWASM=1 -sALLOW_MEMORY_GROWTH=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1)
+        target_link_options(${PROJECT_NAME} PUBLIC --shell-file ${CMAKE_CURRENT_LIST_DIR}/libs/emscripten/shell_minimal.html)
+    else()
+        find_package(SDL2 CONFIG REQUIRED)
+        list(APPEND IMGUI_INTERFACE_LIBS SDL2::SDL2)
+        target_link_libraries(${PROJECT_NAME}
+                PUBLIC
+                SDL2::SDL2main
+                $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+        )
+    endif ()
+
 endif ()
 
 if (IMGUI_BACKEND_SDLRENDERER2)
     message(STATUS "[ImGui] Including backend platform: [SDL2 Renderer]")
     list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdlrenderer2.h)
     list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_sdlrenderer2.cpp)
-    find_package(SDL2 CONFIG REQUIRED)
-    list(APPEND IMGUI_INTERFACE_LIBS SDL2::SDL2)
-    target_link_libraries(${PROJECT_NAME}
-            PUBLIC
-            SDL2::SDL2main
-            $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
-    )
+    if (EMSCRIPTEN)
+        target_link_options(${PROJECT_NAME} PUBLIC -sUSE_SDL=2 -sWASM=1 -sALLOW_MEMORY_GROWTH=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1)
+        target_link_options(${PROJECT_NAME} PUBLIC --shell-file ${CMAKE_CURRENT_LIST_DIR}/libs/emscripten/shell_minimal.html)
+    else()
+        find_package(SDL2 CONFIG REQUIRED)
+        list(APPEND IMGUI_INTERFACE_LIBS SDL2::SDL2)
+        target_link_libraries(${PROJECT_NAME}
+                PUBLIC
+                SDL2::SDL2main
+                $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+        )
+    endif ()
+
 endif ()
 
 if (IMGUI_BACKEND_SDL3)
