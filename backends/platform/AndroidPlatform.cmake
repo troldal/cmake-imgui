@@ -1,0 +1,5 @@
+if (IMGUI_PLAFORM_NAME STREQUAL "ANDROID")
+    message(STATUS "[ImGui] Including platform: ${IMGUI_PLATFORM_NAME}")
+    list(APPEND IMGUI_PUBLIC_H_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_android.h)
+    list(APPEND IMGUI_PUBLIC_CXX_FILES ${IMGUI_BACKENDS_DIR}/imgui_impl_android.cpp)
+endif ()
